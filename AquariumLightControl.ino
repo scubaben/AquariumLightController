@@ -9,8 +9,8 @@ DateTime lastMidnight;
 int photoperiodTimes[4][3]{
   {9,0,0}, //morning start HH, MM, SS
   {12,0,0}, //midday start
-  {17,0,0}, //evening start
-  {20,0,0}, //night start
+  {16,30,0}, //evening start
+  {19,30,0}, //night start
 };
 int outputSettings[4][6] = { //output settings (0-255) Royal Blue, White, Violet, Cyan, Moonlight, Fan
   {179,26,179,179,10,179},  //morning
@@ -25,6 +25,9 @@ unsigned long interval[4][6];
 unsigned long lastUpdate[6];
 int priorPhotoperiod;
 bool serialEnabled = true; //enables serial logging - only set this to true when connected to serial
+unsigned long lastTimePoll;
+unsigned long timePollInterval = 1000;
+
 
 void setup() {
   pinMode(LED_BUILTIN, OUTPUT);  //builtin led used to alert about rtc and serial errors
@@ -51,10 +54,10 @@ void setup() {
       }
       //rtc.adjust(DateTime(F(__DATE__), F(__TIME__))); //this line sets the rtc time to the compilation time
       rtc.adjust(DateTime(2020, 1, 1, 9, 0, 0)); //this line sets the rtc time to 9:00 AM, so its predictable if power is lost in the future
-      digitalWrite(LED_BUILTIN, HIGH);
     }
     //initialize times
     now = rtc.now();
+    lastTimePoll = millis();
     morning = DateTime(now.year(), now.month(), now.day(), photoperiodTimes[0][0], photoperiodTimes[0][1], photoperiodTimes[0][2]);
     midday = DateTime(now.year(), now.month(), now.day(), photoperiodTimes[1][0], photoperiodTimes[1][1], photoperiodTimes[1][2]);
     evening = DateTime(now.year(), now.month(), now.day(), photoperiodTimes[2][0], photoperiodTimes[2][1], photoperiodTimes[2][2]);
@@ -102,24 +105,26 @@ void setup() {
 }
 
 void loop() {
-  now = rtc.now();
+  if(millis() > (lastTimePoll + timePollInterval)){
+    now = rtc.now();
+    lastTimePoll = millis();
+  }
   while((now > (lastMidnight + TimeSpan(1,0,0,5))) || (now < lastMidnight)){ //if the current time is before or more than a day after the last midnight, there was probably an error so try to get the time again.
-    digitalWrite(LED_BUILTIN, HIGH);
     if(serialEnabled){
       Serial.println("Bad date/time: ");
       printDateTime(now);
       Serial.println("Refreshing date/time...");
     }
+    delay(50); //a short delay to let the processor catch up and to let transient errors resolve themselves before attempting to get the time again.
     now = rtc.now();
     if(serialEnabled){
       printDateTime(now);
     }
   }
-  digitalWrite(LED_BUILTIN, LOW);
   int photoperiod = determinePhotoperiod();
   if(photoperiod != priorPhotoperiod){ //detect a change in photoperiods
     if(serialEnabled){
-      Serial.println("As of: ");
+      Serial.print("As of: ");
       printDateTime(now);
       Serial.print("The photoperiod is now: ");
       printPhotoperiod(photoperiod);
@@ -129,7 +134,7 @@ void loop() {
   if(!outputCorrect(photoperiod)){ //if the output doesn't match the photoperiod, ramp
     ramp(photoperiod);
   }
-
+  updateOutput();
   if(now > lastMidnight + TimeSpan(1,0,0,0)){ //each midnight roll photoperiod times forward to the next day
     nextDay();
   }
@@ -234,5 +239,11 @@ void nextDay(){
   if(serialEnabled){
     printDateTime(now);
     Serial.println("It's midnight: rolling morning, midday, evening, and night times forward");
+  }
+}
+
+void updateOutput(){
+  for(int i = 0; i < 6; i++){
+    analogWrite(outputPins[i], currentOutput[i]);
   }
 }
