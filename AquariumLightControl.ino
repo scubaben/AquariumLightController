@@ -12,7 +12,7 @@ int photoperiodTimes[4][3]{
   {16,30,0}, //evening start
   {19,30,0}, //night start
 };
-int outputSettings[4][6] = { //output settings (0-255) Royal Blue, White, Violet, Cyan, Moonlight, Fan
+int outputSettings[4][6] = { //output settings (0-255) Royal Blue, White, Violet, Cyan, Moonlight, Fan (anything less than 50 for the fan is off)
   {179,26,179,179,10,179},  //morning
   {191,89,191,191,179,179}, //midday
   {179,26,179,179,10,179}, //evening
@@ -182,8 +182,14 @@ void ramp(int photoperiod){
         }
       }
       else if(currentOutput[i] < outputSettings[photoperiod][i]){ //if the current setting is less than the setting for the current photoperiod then increase by 1
-        currentOutput[i]++;
-        lastUpdate[i] = millis();
+        if(i == 5 && currentOutput[i] < 50 && outputSettings[photoperiod][i] >= 50){ //the fan doesn't come on until 50, so ramp the fan channel up to 50 for starters
+          currentOutput[i] = 50;
+          lastUpdate[i] = millis();
+        }
+        else{
+          currentOutput[i]++;
+          lastUpdate[i] = millis();
+        }
         if(serialEnabled){
           Serial.print("Ramping channel ");
           Serial.print(i+1, DEC);
