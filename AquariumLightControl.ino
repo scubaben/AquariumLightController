@@ -24,7 +24,7 @@ int outputPins[6] = {3,5,6,9,10,11}; //PWM pins on an arduino metro mini
 unsigned long interval[4][6];
 unsigned long lastUpdate[6];
 int priorPhotoperiod;
-bool serialEnabled = true; //enables serial logging - only set this to true when connected to serial
+bool serialEnabled = false; //enables serial logging - only set this to true when connected to serial
 unsigned long lastTimePoll;
 unsigned long timePollInterval = 1000;
 
@@ -54,7 +54,9 @@ void setup() {
       }
       //rtc.adjust(DateTime(F(__DATE__), F(__TIME__))); //this line sets the rtc time to the compilation time
       rtc.adjust(DateTime(2020, 1, 1, 9, 0, 0)); //this line sets the rtc time to 9:00 AM, so its predictable if power is lost in the future
+      digitalWrite(LED_BUILTIN, HIGH);
     }
+    delay(50); //short delay before initializing times to try to avoid clock errors
     //initialize times
     now = rtc.now();
     lastTimePoll = millis();
