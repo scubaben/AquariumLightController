@@ -12,7 +12,7 @@ int photoperiodTimes[4][3]{
   {16,30,0}, //evening start
   {19,30,0}, //night start
 };
-int outputSettings[4][6] = { //output settings (0-255) Royal Blue, White, Violet, Cyan, Moonlight, Fan (anything less than 50 for the fan is off)
+int outputSettings[4][6] = { //output settings (0-255) Royal Blue, White, Violet, Cyan, Moonlight, Fan (anything less than 100 for the fan is off)
   {179,26,179,179,10,179},  //morning
   {191,89,191,191,179,179}, //midday
   {179,26,179,179,10,179}, //evening
@@ -171,6 +171,7 @@ void ramp(int photoperiod){
     if(millis() > (lastUpdate[i] + interval[photoperiod][i])){ //if it is time to make and update
       if(currentOutput[i] > outputSettings[photoperiod][i]){ //if the current setting is greater than the setting for the current photoperiod then reduce by 1
         currentOutput[i]--;
+        setMinFanSpeed(photoperiod); //adjust the minimum fan speed
         lastUpdate[i] = millis();
         if(serialEnabled){
           Serial.print("Ramping channel ");
@@ -183,6 +184,7 @@ void ramp(int photoperiod){
       }
       else if(currentOutput[i] < outputSettings[photoperiod][i]){ //if the current setting is less than the setting for the current photoperiod then increase by 1
         currentOutput[i]++;
+        setMinFanSpeed(photoperiod); //adjust the minimum fan speed
         lastUpdate[i] = millis();
         if(serialEnabled){
           Serial.print("Ramping channel ");
@@ -248,4 +250,17 @@ void updateOutput(){
   for(int i = 0; i < 6; i++){
     analogWrite(outputPins[i], currentOutput[i]);
   }
+}
+
+void setMinFanSpeed(int photoperiod){
+  int totalOutput;
+  for (int i = 0; i < 5; i++){
+    totalOutput = totalOutput + currentOutput[i]; //add the current output of the LED channels to determine the total output
+  }
+  if(totalOutput > 125 && currentOutput[5] < 100){ //if the total output on the LED channels is more than 10%, and the fan speed is less than 100 then set the fan speed to 100
+    currentOutput[5] = 100;
+  }
+  else if(totalOutput < 125  && outputSettings[photoperiod][5] == 0){ // if the total output on the LED channels is less than 10%, and the target fan speed is 0, then set the fan speed to 0
+    currentOutput[5] = 0;
+  } 
 }
