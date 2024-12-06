@@ -182,8 +182,8 @@ void ramp(int photoperiod){
         }
       }
       else if(currentOutput[i] < outputSettings[photoperiod][i]){ //if the current setting is less than the setting for the current photoperiod then increase by 1
-          currentOutput[i]++;
-          lastUpdate[i] = millis();
+        currentOutput[i]++;
+        lastUpdate[i] = millis();
         if(serialEnabled){
           Serial.print("Ramping channel ");
           Serial.print(i+1, DEC);
