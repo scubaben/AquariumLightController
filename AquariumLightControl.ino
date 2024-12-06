@@ -170,10 +170,6 @@ void ramp(int photoperiod){
   for(int i = 0; i < 6; i++){
     if(millis() > (lastUpdate[i] + interval[photoperiod][i])){ //if it is time to make and update
       if(currentOutput[i] > outputSettings[photoperiod][i]){ //if the current setting is greater than the setting for the current photoperiod then reduce by 1
-        if(i == 5 && currentOutput[i] < 50 && outputSettings[photoperiod][i] >= 50){ //the fan doesn't come on until 50, so ramp the fan channel up to 50 for starters
-          currentOutput[i] = 50;
-          lastUpdate[i] = millis();
-        }
         currentOutput[i]--;
         lastUpdate[i] = millis();
         if(serialEnabled){
@@ -188,7 +184,6 @@ void ramp(int photoperiod){
       else if(currentOutput[i] < outputSettings[photoperiod][i]){ //if the current setting is less than the setting for the current photoperiod then increase by 1
           currentOutput[i]++;
           lastUpdate[i] = millis();
-        }
         if(serialEnabled){
           Serial.print("Ramping channel ");
           Serial.print(i+1, DEC);
