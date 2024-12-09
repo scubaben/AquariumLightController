@@ -10,16 +10,16 @@ int photoperiodTimes[4][3]{
   {9,0,0}, //morning start HH, MM, SS
   {12,0,0}, //midday start
   {16,30,0}, //evening start
-  {19,30,0}, //night start
+  {19,0,0}, //night start
 };
-int outputSettings[4][6] = { //output settings (0-255) Royal Blue, White, Violet, Cyan, Moonlight, Fan (anything less than 100 for the fan is off)
+int outputSettings[4][6] = { //output settings (0-255) Royal Blue, White/Mint, Violet, Blue/Cyan, Moonlight, Fan (anything less than 100 for the fan is off)
   {179,26,179,179,10,179},  //morning
-  {191,89,191,191,179,179}, //midday
-  {179,26,179,179,10,179}, //evening
-  {0,0,0,0,2,0} //night
+  {191,60,191,191,179,179}, //midday
+  {179,20,179,179,10,179}, //evening
+  {0,0,0,0,1,0} //night
 };
 int currentOutput[6]; //current light output
-unsigned long rampLength[4] = {3600000,1800000,1800000,3600000}; //length of ramp in milliseconds for morning, midday, evening, and night
+unsigned long rampLength[4] = {5400000,1800000,1800000,5400000}; //length of ramp in milliseconds for morning, midday, evening, and night
 int outputPins[6] = {3,5,6,9,10,11}; //PWM pins on an arduino metro mini
 unsigned long interval[4][6];
 unsigned long lastUpdate[6];
